@@ -195,7 +195,7 @@ def calculate_order(shop_id):
         }
     }
 
-    response = requests.post(f'{PRINTIFY_BASE_URL}/shops/{shop_id}/orders/calculate.json', headers=printify_headers, json=order_payload)
+    response = requests.post(f'{PRINTIFY_BASE_URL}/shops/{shop_id}/orders/shipping.json', headers=printify_headers, json=order_payload)
     return jsonify(response.json())
 
 
