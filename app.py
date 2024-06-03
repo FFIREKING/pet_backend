@@ -88,10 +88,13 @@ def upload_files_from_urls():
     # Return the results for each file processed
     return jsonify(results), 200
 
+
 @app.route('/get_store', methods=['GET'])
 def get_store():
     response = requests.get(f'{PRINTIFY_BASE_URL}/shops.json', headers=printify_headers)
-    return jsonify(response.json())
+    if response.status_code != 200:
+        return jsonify({'status': 'error', 'error': response.json()}), response.status_code
+    return jsonify(response.json()), 200
 
 @app.route('/upload_image', methods=['POST'])
 def upload_image():
@@ -99,7 +102,7 @@ def upload_image():
     file_contents = data.get('contents')
 
     if not file_contents:
-        return jsonify({'error': 'Contents not provided'}), 400
+        return jsonify({'status': 'error', 'error': 'Contents not provided'}), 400
 
     # Generate a unique filename using uuid
     unique_filename = f"{str(uuid.uuid4())}.png"
@@ -111,13 +114,16 @@ def upload_image():
     }
     response = requests.post(f'{PRINTIFY_BASE_URL}/uploads/images.json', headers=printify_headers, json=payload)
 
-    return jsonify(response.json())
+    if response.status_code != 200:
+        return jsonify({'status': 'error', 'error': response.json()}), response.status_code
+
+    return jsonify(response.json()), 200
 
 @app.route('/create_order/<shop_id>', methods=['POST'])
 def create_order(shop_id):
     data = request.json
     if not shop_id:
-        return jsonify({'error': 'Shop ID is required'}), 400
+        return jsonify({'status': 'error', 'error': 'Shop ID is required'}), 400
 
     order_payload = {
         "external_id": data.get("externalId"),
@@ -162,14 +168,16 @@ def create_order(shop_id):
     }
 
     response = requests.post(f'{PRINTIFY_BASE_URL}/shops/{shop_id}/orders.json', headers=printify_headers, json=order_payload)
-    return jsonify(response.json())
+    if response.status_code != 200:
+        return jsonify({'status': 'error', 'error': response.json()}), response.status_code
 
+    return jsonify(response.json()), 200
 
 @app.route('/calculate_order/<shop_id>', methods=['POST'])
 def calculate_order(shop_id):
     data = request.json
     if not shop_id:
-        return jsonify({'error': 'Shop ID is required'}), 400
+        return jsonify({'status': 'error', 'error': 'Shop ID is required'}), 400
 
     order_payload = {
         "line_items": [
@@ -195,20 +203,26 @@ def calculate_order(shop_id):
     }
 
     response = requests.post(f'{PRINTIFY_BASE_URL}/shops/{shop_id}/orders/shipping.json', headers=printify_headers, json=order_payload)
-    return jsonify(response.json())
+    if response.status_code != 200:
+        return jsonify({'status': 'error', 'error': response.json()}), response.status_code
 
+    return jsonify(response.json()), 200
 
 @app.route('/cancel_order/<shop_id>/<order_id>', methods=['POST'])
 def cancel_order(shop_id, order_id):
     response = requests.post(f'{PRINTIFY_BASE_URL}/shops/{shop_id}/orders/{order_id}/cancel.json', headers=printify_headers)
-    return jsonify(response.json())
+    if response.status_code != 200:
+        return jsonify({'status': 'error', 'error': response.json()}), response.status_code
+
+    return jsonify(response.json()), 200
 
 @app.route('/send_to_production/<shop_id>/<order_id>', methods=['POST'])
 def send_to_production(shop_id, order_id):
     response = requests.post(f'{PRINTIFY_BASE_URL}/shops/{shop_id}/orders/{order_id}/send_to_production.json', headers=printify_headers)
-    return jsonify(response.json())
+    if response.status_code != 200:
+        return jsonify({'status': 'error', 'error': response.json()}), response.status_code
 
-
+    return jsonify(response.json()), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
