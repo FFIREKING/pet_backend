@@ -19,6 +19,15 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}  # Allowed file extensions
 
+
+# Printify API configuration
+PRINTIFY_API_KEY = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIzN2Q0YmQzMDM1ZmUxMWU5YTgwM2FiN2VlYjNjY2M5NyIsImp0aSI6ImMxZmY5NWFmMGYxNjM3ZjZmOWY1OTJkYzBiZWE1NzNlOGI4NWQ4ZTcxYzYzYWE0YTMxZjZkOTdkZGVmYzI2OTQ1MzIyYzVhMDMzMDBlODZiIiwiaWF0IjoxNzE2MDk3NDM4Ljg4MDQ1OCwibmJmIjoxNzE2MDk3NDM4Ljg4MDQ2LCJleHAiOjE3NDc2MzM0MzguODcyNTU3LCJzdWIiOiIxNDgxODIyMiIsInNjb3BlcyI6WyJzaG9wcy5tYW5hZ2UiLCJzaG9wcy5yZWFkIiwiY2F0YWxvZy5yZWFkIiwib3JkZXJzLnJlYWQiLCJvcmRlcnMud3JpdGUiLCJwcm9kdWN0cy5yZWFkIiwicHJvZHVjdHMud3JpdGUiLCJ3ZWJob29rcy5yZWFkIiwid2ViaG9va3Mud3JpdGUiLCJ1cGxvYWRzLnJlYWQiLCJ1cGxvYWRzLndyaXRlIiwicHJpbnRfcHJvdmlkZXJzLnJlYWQiXX0.Ab6sC44z29HhhULmkhbHxQNVaSvYjLbi0f6CeLjxJLZiUSBXwv-5YmqlOFQGT8l4GHbFLzdnhPQVouh31Eg'
+PRINTIFY_BASE_URL = 'https://api.printify.com/v1'
+printify_headers = {
+    'Authorization': f'Bearer {PRINTIFY_API_KEY}',
+    'Content-Type': 'application/json'
+}
+
 @app.route('/', methods=['GET'])
 def hello_world():
     return "Hello, World!"
@@ -79,6 +88,128 @@ def upload_files_from_urls():
 
     # Return the results for each file processed
     return jsonify(results), 200
+
+@app.route('/get_store', methods=['GET'])
+def get_store():
+    response = requests.get(f'{PRINTIFY_BASE_URL}/shops.json', headers=printify_headers)
+    return jsonify(response.json())
+
+@app.route('/upload_image', methods=['POST'])
+def upload_image():
+    data = request.json
+    file_contents = data.get('contents')
+
+    if not file_contents:
+        return jsonify({'error': 'Contents not provided'}), 400
+
+    # Generate a unique filename using uuid
+    unique_filename = f"{str(uuid.uuid4())}.png"
+
+    # Upload the base64 image to Printify
+    payload = {
+        "file_name": unique_filename,
+        "contents": file_contents
+    }
+    response = requests.post(f'{PRINTIFY_BASE_URL}/uploads/images.json', headers=printify_headers, json=payload)
+
+    return jsonify(response.json())
+
+@app.route('/create_order/<shop_id>', methods=['POST'])
+def create_order(shop_id):
+    data = request.json
+    if not shop_id:
+        return jsonify({'error': 'Shop ID is required'}), 400
+
+    order_payload = {
+        "external_id": data.get("externalId"),
+        "label": "00012",
+        "line_items": [
+            {
+                "blueprint_id": data.get("blueprint_id"),
+                "print_provider_id": data.get("print_provider_id"),
+                "variant_id": data.get("variant_id"),
+                "print_areas": {
+                    "front": [
+                        {
+                            "src": data.get("url"),
+                            "height": 1024,
+                            "width": 1024,
+                            "x": 0.5,
+                            "y": 0.5,
+                            "scale": 1,
+                            "angle": 0
+                        }
+                    ]
+                },
+                "quantity": 1
+            }
+        ],
+        "shipping_method": 1,
+        "is_printify_express": False,
+        "is_economy_shipping": False,
+        "send_shipping_notification": False,
+        "address_to": {
+            "first_name": data.get("firstName"),
+            "last_name": data.get("lastName"),
+            "email": data.get("email"),
+            "phone": data.get("phone"),
+            "country": data.get("country"),
+            "region": data.get("region"),
+            "address1": data.get("address1"),
+            "address2": data.get("address2"),
+            "city": data.get("city"),
+            "zip": data.get("zip")
+        }
+    }
+
+    response = requests.post(f'{PRINTIFY_BASE_URL}/shops/{shop_id}/orders.json', headers=printify_headers, json=order_payload)
+    return jsonify(response.json())
+
+
+@app.route('/calculate_order/<shop_id>', methods=['POST'])
+def calculate_order(shop_id):
+    data = request.json
+    if not shop_id:
+        return jsonify({'error': 'Shop ID is required'}), 400
+
+    order_payload = {
+        "line_items": [
+            {
+                "print_provider_id": data.get("print_provider_id"),
+                "blueprint_id": data.get("blueprint_id"),
+                "variant_id": data.get("variant_id"),
+                "quantity": 1
+            }
+        ],
+        "address_to": {
+            "first_name": data.get("firstName"),
+            "last_name": data.get("lastName"),
+            "email": data.get("email"),
+            "phone": data.get("phone"),
+            "country": data.get("country"),
+            "region": data.get("region"),
+            "address1": data.get("address1"),
+            "address2": data.get("address2"),
+            "city": data.get("city"),
+            "zip": data.get("zip")
+        }
+    }
+
+    response = requests.post(f'{PRINTIFY_BASE_URL}/shops/{shop_id}/orders/calculate.json', headers=printify_headers, json=order_payload)
+    return jsonify(response.json())
+
+
+@app.route('/cancel_order/<shop_id>/<order_id>', methods=['POST'])
+def cancel_order(shop_id, order_id):
+    response = requests.post(f'{PRINTIFY_BASE_URL}/shops/{shop_id}/orders/{order_id}/cancel.json', headers=printify_headers)
+    return jsonify(response.json())
+
+@app.route('/send_to_production/<shop_id>/<order_id>', methods=['POST'])
+def send_to_production(shop_id, order_id):
+    response = requests.post(f'{PRINTIFY_BASE_URL}/shops/{shop_id}/orders/{order_id}/send_to_production.json', headers=printify_headers)
+    return jsonify(response.json())
+
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
