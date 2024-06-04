@@ -6,6 +6,7 @@ from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from urllib.parse import urlparse, unquote
 from octoai.clients.asset_orch import AssetOrchestrator, FileData
+from uvicorn.middleware.asgi2 import ASGI2Middleware
 # import dotenv
 
 # dotenv.load_dotenv()
@@ -225,4 +226,5 @@ def send_to_production(shop_id, order_id):
     return jsonify(response.json()), 200
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app = ASGI2Middleware(app)
+    app.run(host='0.0.0.0', port=8000, debug=True)
