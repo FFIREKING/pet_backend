@@ -5,8 +5,8 @@ import requests
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from urllib.parse import urlparse, unquote
-from asgiref.wsgi import WSGIMiddleware
 from octoai.clients.asset_orch import AssetOrchestrator, FileData
+from uvicorn.middleware.asgi2 import ASGI2Middleware
 import dotenv
 
 OCTOAI_TOKEN = os.environ.get("OCTOAI_TOKEN")
@@ -25,9 +25,6 @@ printify_headers = {
 }
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-# Wrap the Flask app with ASGI middleware
-app = WSGIMiddleware(app)
 
 @app.route('/', methods=['GET'])
 def hello_world():
@@ -228,4 +225,4 @@ def send_to_production(shop_id, order_id):
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
