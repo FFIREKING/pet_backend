@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 from urllib.parse import urlparse, unquote
 from asgiref.wsgi import WSGIMiddleware
 from octoai.clients.asset_orch import AssetOrchestrator, FileData
-# import dotenv
+import dotenv
 
 OCTOAI_TOKEN = os.environ.get("OCTOAI_TOKEN")
 PRINTIFY_API_KEY = os.environ.get("PRINTIFY_TOKEN")
