@@ -14,6 +14,7 @@ OCTOAI_TOKEN = os.environ.get("OCTOAI_TOKEN")
 PRINTIFY_API_KEY = os.environ.get("PRINTIFY_TOKEN")
 app = Flask(__name__)
 CORS(app, origins="*")
+app = ASGI2Middleware(app)
 
 UPLOAD_FOLDER = 'uploads'  # Folder where files will be saved
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -226,5 +227,5 @@ def send_to_production(shop_id, order_id):
     return jsonify(response.json()), 200
 
 if __name__ == '__main__':
-    app = ASGI2Middleware(app)
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
