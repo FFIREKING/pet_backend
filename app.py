@@ -9,26 +9,22 @@ from octoai.clients.asset_orch import AssetOrchestrator, FileData
 from uvicorn.middleware.asgi2 import ASGI2Middleware
 # import dotenv
 
-# dotenv.load_dotenv()
 OCTOAI_TOKEN = os.environ.get("OCTOAI_TOKEN")
 PRINTIFY_API_KEY = os.environ.get("PRINTIFY_TOKEN")
+
 app = Flask(__name__)
 CORS(app, origins="*")
-app_asgi = ASGI2Middleware(app)
 
-
-UPLOAD_FOLDER = 'uploads'  # Folder where files will be saved
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
+UPLOAD_FOLDER = os.environ.get("UPLOAD_FOLDER", 'uploads')  # Folder where files will be saved
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png'}  # Allowed file extensions
 
-
-# Printify API configuration
 PRINTIFY_BASE_URL = 'https://api.printify.com/v1'
 printify_headers = {
     'Authorization': f'Bearer {PRINTIFY_API_KEY}',
     'Content-Type': 'application/json'
 }
+
+app_asgi = ASGI2Middleware(app)
 
 @app.route('/', methods=['GET'])
 def hello_world():
