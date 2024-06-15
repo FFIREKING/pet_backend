@@ -241,10 +241,10 @@ def add_name():
     image = Image.open(io.BytesIO(image_data))
 
     # Crop the original image to 1024x904
-    cropped_image = image.crop((0, 0, 1024, 904))
+    cropped_image = image.crop((0, 0, 1024, 824))
 
     # Create a new image for the name tag
-    tag_height = 120
+    tag_height = 200
     tag_image = Image.new('RGB', (1024, tag_height), color='white')
 
     # Draw the name on the tag image
@@ -255,13 +255,13 @@ def add_name():
     text_width = draw.textlength(name, font=font)
     text_height = font_size
     text_x = (1024 - text_width) // 2
-    text_y = (tag_height - text_height) // 2 - 10
+    text_y = (tag_height - text_height) // 2 - 50
     draw.text((text_x, text_y), name, fill="black", font=font)
 
     # Combine the cropped image and the tag image
     combined_image = Image.new('RGB', (1024, 1024))
     combined_image.paste(cropped_image, (0, 0))
-    combined_image.paste(tag_image, (0, 904))
+    combined_image.paste(tag_image, (0, 824))
 
     # Save the combined image to a BytesIO object
     img_byte_arr = io.BytesIO()
