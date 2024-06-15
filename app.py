@@ -2,6 +2,9 @@ from flask import Flask, request, jsonify
 import os
 import uuid
 import requests
+from PIL import Image, ImageDraw, ImageFont
+import io
+import base64
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from urllib.parse import urlparse, unquote
@@ -225,6 +228,50 @@ def send_to_production(shop_id, order_id):
         return jsonify({'status': 'error', 'error': response.json()}), response.status_code
 
     return jsonify(response.json()), 200
+
+
+@app.route('/add_name', methods=['POST'])
+def add_name():
+    data = request.json
+    image_base64 = data.get('image')
+    name = data.get('name')
+    
+    # Decode the base64 image
+    image_data = base64.b64decode(image_base64)
+    image = Image.open(io.BytesIO(image_data))
+
+    # Crop the original image to 1024x904
+    cropped_image = image.crop((0, 0, 1024, 904))
+
+    # Create a new image for the name tag
+    tag_height = 120
+    tag_image = Image.new('RGB', (1024, tag_height), color='white')
+
+    # Draw the name on the tag image
+    font_size = 80
+    draw = ImageDraw.Draw(tag_image)
+    font_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "font", "WorkSans-SemiBold.ttf")
+    font = ImageFont.truetype(font_path, font_size)
+    text_width = draw.textlength(name, font=font)
+    text_height = font_size
+    text_x = (1024 - text_width) // 2
+    text_y = (tag_height - text_height) // 2 - 10
+    draw.text((text_x, text_y), name, fill="black", font=font)
+
+    # Combine the cropped image and the tag image
+    combined_image = Image.new('RGB', (1024, 1024))
+    combined_image.paste(cropped_image, (0, 0))
+    combined_image.paste(tag_image, (0, 904))
+
+    # Save the combined image to a BytesIO object
+    img_byte_arr = io.BytesIO()
+    combined_image.save(img_byte_arr, format='PNG')
+    img_byte_arr = img_byte_arr.getvalue()
+
+    # Encode the image back to base64
+    combined_image_base64 = base64.b64encode(img_byte_arr).decode('utf-8')
+
+    return {'image': combined_image_base64}
 
 if __name__ == '__main__':
     import uvicorn
