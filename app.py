@@ -169,8 +169,11 @@ def create_order(shop_id):
         }
     }
 
-    response = requests.post(f'{PRINTIFY_BASE_URL}/shops/{shop_id}/orders.json', headers=printify_headers, json=order_payloa
+    response = requests.post(f'{PRINTIFY_BASE_URL}/shops/{shop_id}/orders.json', headers=printify_headers, json=order_payload)
+    if response.status_code != 200:
+        return jsonify({'status': 'error', 'error': response.json()}), response.status_code
 
+    return jsonify(response.json()), 200
 
 @app.route('/calculate_order/<shop_id>', methods=['POST'])
 def calculate_order(shop_id):
