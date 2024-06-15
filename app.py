@@ -255,7 +255,7 @@ def add_name():
     text_width = draw.textlength(name, font=font)
     text_height = font_size
     text_x = (1024 - text_width) // 2
-    text_y = (tag_height - text_height) // 2 - 50
+    text_y = (tag_height - text_height) // 2 - 40
     draw.text((text_x, text_y), name, fill="black", font=font)
 
     # Combine the cropped image and the tag image
