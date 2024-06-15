@@ -234,7 +234,7 @@ def send_to_production(shop_id, order_id):
 def add_name():
     data = request.json
     image_base64 = data.get('image')
-    name = data.get('name')
+    name = data.get('name').upper() 
     
     # Decode the base64 image
     image_data = base64.b64decode(image_base64)
