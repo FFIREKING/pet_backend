@@ -265,7 +265,7 @@ def add_name():
 
     # Save the combined image to a BytesIO object
     img_byte_arr = io.BytesIO()
-    combined_image.save(img_byte_arr, format='WEBP', quality=80)
+    combined_image.save(img_byte_arr, format='JPEG', quality=80)
     img_byte_arr = img_byte_arr.getvalue()
 
     # Encode the image back to base64
