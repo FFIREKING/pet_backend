@@ -134,7 +134,8 @@ def create_order(shop_id):
         "label": "00012",
         "line_items": [
             {
-                "sku": data.get("SKUid"),
+                "product_id": data.get("productId"),
+                "variant_id": data.get("variantId"),
                 "quantity": 1
             }
         ],
