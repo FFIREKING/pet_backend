@@ -129,28 +129,12 @@ def create_order(shop_id):
     if not shop_id:
         return jsonify({'status': 'error', 'error': 'Shop ID is required'}), 400
     
-    blueprint_id = data.get("blueprint_id")
     order_payload = {
         "external_id": data.get("externalId"),
         "label": "00012",
         "line_items": [
             {
-                "blueprint_id": blueprint_id,
-                "print_provider_id": data.get("print_provider_id"),
-                "variant_id": data.get("variant_id"),
-                "print_areas": {
-                    "front": [
-                        {
-                            "src": data.get("url"),
-                            "height": 1024,
-                            "width": 1024,
-                            "x": 0.5,
-                            "y": 0.5,
-                            "scale": 0.5 if blueprint_id == 478 else 1,
-                            "angle": 0
-                        }
-                    ]
-                },
+                "sku": data.get("SKUid"),
                 "quantity": 1
             }
         ],
